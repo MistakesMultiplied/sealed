@@ -4,7 +4,6 @@
 #include "NavEngine/Controllers/PLController/PLController.h"
 #include "NavEngine/Controllers/Controller.h"
 #include "../Players/PlayerUtils.h"
-#include "../Misc/NamedPipe/NamedPipe.h"
 #include "../Aimbot/AimbotGlobal/AimbotGlobal.h"
 #include "../Ticks/Ticks.h"
 #include "../PacketManip/FakeLag/FakeLag.h"
@@ -91,11 +90,6 @@ int CNavBot::ShouldTarget(CTFPlayer* pLocal, CTFWeaponBase* pWeapon, int iPlayer
 	auto pPlayer = pEntity->As<CTFPlayer>();
 	if (!pPlayer->IsAlive() || pPlayer == pLocal)
 		return -1;
-
-	// pipe local playa
-	PlayerInfo_t pi{};
-	if (I::EngineClient->GetPlayerInfo(iPlayerIdx, &pi) && F::NamedPipe::IsLocalBot(pi.friendsID))
-		return 0;
 
 	if (F::PlayerUtils.IsIgnored(iPlayerIdx))
 		return 0;
@@ -3093,10 +3087,6 @@ void CNavBot::UpdateLocalBotPositions(CTFPlayer* pLocal)
 
 		PlayerInfo_t pi{};
 		if (!I::EngineClient->GetPlayerInfo(i, &pi))
-			continue;
-
-		// Is this a local bot????
-		if (!F::NamedPipe::IsLocalBot(pi.friendsID))
 			continue;
 
 		// Get the player entity

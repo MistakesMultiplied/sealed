@@ -4,7 +4,6 @@
 #include "../Ticks/Ticks.h"
 #include "../Players/PlayerUtils.h"
 #include "../Aimbot/AutoRocketJump/AutoRocketJump.h"
-#include "NamedPipe/NamedPipe.h"
 #include <fstream>
 
 void CMisc::RunPre(CTFPlayer* pLocal, CUserCmd* pCmd)
@@ -14,15 +13,6 @@ void CMisc::RunPre(CTFPlayer* pLocal, CUserCmd* pCmd)
 	ChatSpam(pLocal);
 	CheatsBypass();
 	WeaponSway();
-	
-	if (I::EngineClient && I::EngineClient->IsInGame() && I::EngineClient->IsConnected())
-	{
-		static Timer namedPipeTimer{};
-		if (namedPipeTimer.Run(1.0f))
-		{
-			F::NamedPipe::UpdateLocalBotIgnoreStatus();
-		}
-	}
 	
 	if (!pLocal)
 		return;

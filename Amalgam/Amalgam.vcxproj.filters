@@ -245,7 +245,6 @@
     <ClCompile Include="src\Hooks\IEngineVGui_Paint.cpp" />
     <ClCompile Include="src\Hooks\CBuf_ExecuteCommand.cpp" />
     <ClCompile Include="src\Hooks\IEngineTrace_SetTraceEntity.cpp" />
-    <ClCompile Include="src\Features\Misc\NamedPipe\NamedPipe.cpp" />
     <ClCompile Include="src\Hooks\CGameEventManager_FireEventClientSide.cpp" />
     <ClCompile Include="src\Hooks\IMatSystemSurface_OnScreenSizeChanged.cpp" />
     <ClCompile Include="src\Features\Visuals\Groups\Groups.cpp" />
@@ -667,7 +666,6 @@
     <ClInclude Include="src\SDK\Definitions\Main\IServerUnknown.h" />
     <ClInclude Include="src\SDK\Definitions\Misc\IMatchGroupDescription.h" />
     <ClInclude Include="src\SDK\Definitions\Main\PlayerStats.h" />
-    <ClInclude Include="src\Features\Misc\NamedPipe\NamedPipe.h" />
     <ClInclude Include="src\Features\Visuals\Groups\Groups.h" />
     <ClInclude Include="src\Features\Misc\AutoItem\AutoItem.h" />
     <ClInclude Include="src\SDK\Definitions\Interfaces\CTFInventoryManager.h" />
