@@ -492,8 +492,11 @@ void CAimbotMelee::Run(CTFPlayer* pLocal, CTFWeaponBase* pWeapon, CUserCmd* pCmd
 
 	if (F::AimbotGlobal.ShouldHoldAttack(pWeapon))
 		pCmd->buttons |= IN_ATTACK;
-	if (!Vars::Aimbot::General::AimType.Value
-		|| !F::AimbotGlobal.ShouldAim() && pWeapon->m_flSmackTime() < 0.f)
+	
+	bool bShouldRun = Vars::Aimbot::General::AimType.Value || 
+		(Vars::Aimbot::Melee::AutoBackstab.Value || Vars::Aimbot::Melee::AutoBackstabTrigger.Value);
+	
+	if (!bShouldRun || (!F::AimbotGlobal.ShouldAim() && pWeapon->m_flSmackTime() < 0.f))
 		return;
 
 	m_mRecordMap.clear(); m_mPaths.clear();
@@ -520,17 +523,38 @@ void CAimbotMelee::Run(CTFPlayer* pLocal, CTFWeaponBase* pWeapon, CUserCmd* pCmd
 	{
 		const auto iResult = CanHit(tTarget, pLocal, pWeapon, vEyePos);
 		if (!iResult) continue;
+		
+		bool bAimbotEnabled = Vars::Aimbot::General::AimType.Value != 0;
+		
 		if (iResult == 2)
 		{
-			G::AimTarget = { tTarget.m_pEntity->entindex(), I::GlobalVars->tickcount, 0 };
-			Aim(pCmd, tTarget.m_vAngleTo);
+			if (bAimbotEnabled)
+			{
+				G::AimTarget = { tTarget.m_pEntity->entindex(), I::GlobalVars->tickcount, 0 };
+				Aim(pCmd, tTarget.m_vAngleTo);
+			}
 			break;
 		}
 
-		G::AimTarget = { tTarget.m_pEntity->entindex(), I::GlobalVars->tickcount };
-		G::AimPoint = { tTarget.m_vPos, I::GlobalVars->tickcount };
+		if (bAimbotEnabled)
+		{
+			G::AimTarget = { tTarget.m_pEntity->entindex(), I::GlobalVars->tickcount };
+			G::AimPoint = { tTarget.m_vPos, I::GlobalVars->tickcount };
+		}
 
+		bool bAutoBackstabTrigger = Vars::Aimbot::Melee::AutoBackstabTrigger.Value && 
+			pWeapon->GetWeaponID() == TF_WEAPON_KNIFE && 
+			tTarget.m_iTargetType == TargetEnum::Player &&
+			CanBackstab(tTarget.m_pEntity, pLocal, I::EngineClient->GetViewAngles());
+		
 		if (Vars::Aimbot::General::AutoShoot.Value && pWeapon->m_flSmackTime() < 0.f)
+		{
+			if (bShouldSwing)
+				pCmd->buttons |= IN_ATTACK;
+			if (m_iDoubletapTicks)
+				F::Ticks.m_bDoubletap = true;
+		}
+		else if (bAutoBackstabTrigger && pWeapon->m_flSmackTime() < 0.f)
 		{
 			if (bShouldSwing)
 				pCmd->buttons |= IN_ATTACK;
@@ -545,14 +569,17 @@ void CAimbotMelee::Run(CTFPlayer* pLocal, CTFWeaponBase* pWeapon, CUserCmd* pCmd
 				pCmd->tick_count = TIME_TO_TICKS(tTarget.m_pRecord->m_flSimTime + F::Backtrack.GetFakeInterp());
 			// bug: fast old records seem to be progressively more unreliable ?
 		}
-		else
+		else if (bAimbotEnabled)
 		{
 			vEyePos = pLocal->GetShootPos();
 			Aim(G::CurrentUserCmd->viewangles, Math::CalcAngle(vEyePos, tTarget.m_vPos), tTarget.m_vAngleTo);
 		}
 		DrawVisuals(pLocal, pWeapon, pCmd, tTarget, m_mPaths);
 
-		Aim(pCmd, tTarget.m_vAngleTo);
+		if (bAimbotEnabled)
+		{
+			Aim(pCmd, tTarget.m_vAngleTo);
+		}
 		break;
 	}
 }
