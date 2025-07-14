@@ -316,10 +316,19 @@ int CAimbotMelee::CanHit(Target_t& tTarget, CTFPlayer* pLocal, CTFWeaponBase* pW
 			bReturn = trace.m_pEnt && trace.m_pEnt == tTarget.m_pEntity;
 		}
 
-		if (bReturn && Vars::Aimbot::Melee::AutoBackstab.Value && pWeapon->GetWeaponID() == TF_WEAPON_KNIFE)
+		if (bReturn && (Vars::Aimbot::Melee::AutoBackstab.Value || Vars::Aimbot::Melee::AutoBackstabTrigger.Value) && pWeapon->GetWeaponID() == TF_WEAPON_KNIFE)
 		{
 			if (tTarget.m_iTargetType == TargetEnum::Player)
-				bReturn = CanBackstab(tTarget.m_pEntity, pLocal, tTarget.m_vAngleTo);
+			{
+				if (Vars::Aimbot::Melee::AutoBackstabTrigger.Value)
+				{
+					bReturn = CanBackstab(tTarget.m_pEntity, pLocal, I::EngineClient->GetViewAngles());
+				}
+				else
+				{
+					bReturn = CanBackstab(tTarget.m_pEntity, pLocal, tTarget.m_vAngleTo);
+				}
+			}
 			else
 				bReturn = false;
 		}

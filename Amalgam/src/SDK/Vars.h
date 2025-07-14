@@ -336,8 +336,8 @@ namespace Vars
 				VA_LIST("Stickies", "Flares", "##Divider", "Damage priority", "Prevent self damage"),
 				Stickies = 1 << 0, Flares = 1 << 1, MaxDamage = 1 << 2, PreventSelfDamage = 1 << 3);
 			CVarEnum(AutoAirblast, "Auto airblast", 0b000, DROPDOWN_MULTI, "Off", // todo: implement advanced redirect!!
-				VA_LIST("Enabled", "##Divider", "Redirect", "Ignore FOV"),
-				Enabled = 1 << 0, Redirect = 1 << 1, IgnoreFOV = 1 << 2);
+				VA_LIST("Enabled", "##Divider", "Redirect", "Ignore FOV", "Trigger"),
+				Enabled = 1 << 0, Redirect = 1 << 1, IgnoreFOV = 1 << 2, Trigger = 1 << 3);
 			CVarEnum(Hitboxes, VA_LIST("Hitboxes", "Projectile hitboxes"), 0b001111, DROPDOWN_MULTI, nullptr,
 				VA_LIST("Auto", "##Divider", "Head", "Body", "Feet", "##Divider", "Bodyaim if lethal", "Prioritize feet"),
 				Auto = 1 << 0, Head = 1 << 1, Body = 1 << 2, Feet = 1 << 3, BodyaimIfLethal = 1 << 4, PrioritizeFeet = 1 << 5);
@@ -405,6 +405,7 @@ namespace Vars
 
 		SUBNAMESPACE_BEGIN(Melee)
 			CVar(AutoBackstab, "Auto backstab", true);
+			CVar(AutoBackstabTrigger, "Auto backstab trigger", false);
 			CVar(IgnoreRazorback, "Ignore razorback", true);
 			CVar(SwingPrediction, "Swing prediction", false);
 			CVar(WhipTeam, "Whip team", false);
@@ -1181,6 +1182,7 @@ namespace Vars
 			CVar(InstantRespawn, "Instant respawn", false);
 			CVar(InstantRevive, "Instant revive", false);
 			CVar(AllowInspect, "Allow inspect", false);
+			CVar(AutoMvmReadyUp, "Auto MvM ready up", false);
 		SUBNAMESPACE_END(MannVsMachine);
 
 		SUBNAMESPACE_BEGIN(SteamRPC, Steam RPC)
@@ -1361,6 +1363,7 @@ namespace Vars
 		CVar(RecvProxy_SimulationTime, "RecvProxy_SimulationTime", true, NOSAVE | DEBUGVAR);
 		CVar(TF_IsHolidayActive, "TF_IsHolidayActive", true, NOSAVE | DEBUGVAR);
 		CVar(VGuiMenuBuilder_AddMenuItem, "VGuiMenuBuilder_AddMenuItem", true, NOSAVE | DEBUGVAR);
+		CVar(CHudTournamentSetup_OnTick, "CHudTournamentSetup_OnTick", true, NOSAVE | DEBUGVAR);
 	NAMESPACE_END(Hooks);
 #endif
 }

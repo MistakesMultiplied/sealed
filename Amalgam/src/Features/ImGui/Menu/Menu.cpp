@@ -319,9 +319,10 @@ void CMenu::MenuAimbot(int iTab)
 				if (Section("Melee", 8))
 				{
 					FToggle(Vars::Aimbot::Melee::AutoBackstab, FToggleEnum::Left);
-					FToggle(Vars::Aimbot::Melee::IgnoreRazorback, FToggleEnum::Right);
-					FToggle(Vars::Aimbot::Melee::SwingPrediction, FToggleEnum::Left);
-					FToggle(Vars::Aimbot::Melee::WhipTeam, FToggleEnum::Right);
+					FToggle(Vars::Aimbot::Melee::AutoBackstabTrigger, FToggleEnum::Right);
+					FToggle(Vars::Aimbot::Melee::IgnoreRazorback, FToggleEnum::Left);
+					FToggle(Vars::Aimbot::Melee::SwingPrediction, FToggleEnum::Right);
+					FToggle(Vars::Aimbot::Melee::WhipTeam, FToggleEnum::Left);
 				} EndSection();
 				if (Vars::Debug::Options.Value)
 				{
@@ -1467,35 +1468,35 @@ void CMenu::MenuMisc(int iTab)
 						FSlider(Vars::Misc::Movement::ApplyAbove);
 					} EndSection();
 				}
-				if (Section("Nav Engine", 8))
-				{
-					FToggle(Vars::Misc::Movement::NavEngine::Enabled);
-					PushTransparent(!Vars::Misc::Movement::NavEngine::Enabled.Value);
-					{
-						FToggle(Vars::Misc::Movement::NavEngine::PathInSetup);
-						FDropdown(Vars::Misc::Movement::NavEngine::Draw, FDropdownEnum::Multi, -50);
-						FColorPicker(Vars::Colors::NavbotPath, FColorPickerEnum::SameLine, {}, { H::Draw.Scale(10), H::Draw.Scale(20) });
-						FColorPicker(Vars::Colors::NavbotArea, FColorPickerEnum::SameLine, {}, { H::Draw.Scale(10), H::Draw.Scale(20) });
-						FColorPicker(Vars::Colors::NavbotBlacklist, FColorPickerEnum::SameLine, {}, { H::Draw.Scale(10), H::Draw.Scale(20) });
-						FDropdown(Vars::Misc::Movement::NavEngine::LookAtPath);
-					}
-					PopTransparent();
-				} EndSection();
-				if (Vars::Debug::Options.Value)
-				{
-					if (Section("##Debug Nav engine"))
-					{
-						FToggle(Vars::Misc::Movement::NavEngine::SafePathing);
-						FSlider(Vars::Misc::Movement::NavEngine::StickyIgnoreTime, FSliderEnum::Left);
-						FSlider(Vars::Misc::Movement::NavEngine::StuckDetectTime, FSliderEnum::Right);
-						FSlider(Vars::Misc::Movement::NavEngine::StuckBlacklistTime, FSliderEnum::Left);
-						FSlider(Vars::Misc::Movement::NavEngine::StuckExpireTime, FSliderEnum::Right);
-						FSlider(Vars::Misc::Movement::NavEngine::StuckTime, FSliderEnum::None);
-						FToggle(Vars::Misc::Movement::NavEngine::VischeckEnabled);
-						FSlider(Vars::Misc::Movement::NavEngine::VischeckTime, FSliderEnum::Left);
-						FSlider(Vars::Misc::Movement::NavEngine::VischeckCacheTime, FSliderEnum::Right);
-					} EndSection();
-				}
+				// if (Section("Nav Engine", 8))
+				// {
+				// 	FToggle(Vars::Misc::Movement::NavEngine::Enabled);
+				// 	PushTransparent(!Vars::Misc::Movement::NavEngine::Enabled.Value);
+				// 	{
+				// 		FToggle(Vars::Misc::Movement::NavEngine::PathInSetup);
+				// 		FDropdown(Vars::Misc::Movement::NavEngine::Draw, FDropdownEnum::Multi, -50);
+				// 		FColorPicker(Vars::Colors::NavbotPath, FColorPickerEnum::SameLine, {}, { H::Draw.Scale(10), H::Draw.Scale(20) });
+				// 		FColorPicker(Vars::Colors::NavbotArea, FColorPickerEnum::SameLine, {}, { H::Draw.Scale(10), H::Draw.Scale(20) });
+				// 		FColorPicker(Vars::Colors::NavbotBlacklist, FColorPickerEnum::SameLine, {}, { H::Draw.Scale(10), H::Draw.Scale(20) });
+				// 		FDropdown(Vars::Misc::Movement::NavEngine::LookAtPath);
+				// 	}
+				// 	PopTransparent();
+				// } EndSection();
+				// if (Vars::Debug::Options.Value)
+				// {
+				// 	if (Section("##Debug Nav engine"))
+				// 	{
+				// 		FToggle(Vars::Misc::Movement::NavEngine::SafePathing);
+				// 		FSlider(Vars::Misc::Movement::NavEngine::StickyIgnoreTime, FSliderEnum::Left);
+				// 		FSlider(Vars::Misc::Movement::NavEngine::StuckDetectTime, FSliderEnum::Right);
+				// 		FSlider(Vars::Misc::Movement::NavEngine::StuckBlacklistTime, FSliderEnum::Left);
+				// 		FSlider(Vars::Misc::Movement::NavEngine::StuckExpireTime, FSliderEnum::Right);
+				// 		FSlider(Vars::Misc::Movement::NavEngine::StuckTime, FSliderEnum::None);
+				// 		FToggle(Vars::Misc::Movement::NavEngine::VischeckEnabled);
+				// 		FSlider(Vars::Misc::Movement::NavEngine::VischeckTime, FSliderEnum::Left);
+				// 		FSlider(Vars::Misc::Movement::NavEngine::VischeckCacheTime, FSliderEnum::Right);
+				// 	} EndSection();
+				// }
 				if (Section("Exploits", true))
 				{
 					FToggle(Vars::Misc::Exploits::PureBypass, FToggleEnum::Left);
@@ -1591,62 +1592,63 @@ void CMenu::MenuMisc(int iTab)
 					}
 					PopTransparent();
 				} EndSection();
-				if (Section("Navbot", 8))
-				{
-					PushTransparent(!Vars::Misc::Movement::NavEngine::Enabled.Value);
-					{
-						FToggle(Vars::Misc::Movement::NavBot::Enabled);
-						PushTransparent(!Vars::Misc::Movement::NavBot::Enabled.Value || !Vars::Misc::Movement::NavEngine::Enabled.Value);
-						{
-							FDropdown(Vars::Misc::Movement::NavBot::WeaponSlot);
-							FDropdown(Vars::Misc::Movement::NavBot::RechargeDT);
-							PushTransparent(Transparent || !Vars::Misc::Movement::NavBot::RechargeDT.Value);
-							FSlider(Vars::Misc::Movement::NavBot::RechargeDTDelay, FSliderEnum::None);
-							PopTransparent();
-							FDropdown(Vars::Misc::Movement::NavBot::AutoScope);
-							PushTransparent(Transparent || !Vars::Misc::Movement::NavBot::AutoScope.Value);
-							{
-								FSlider(Vars::Misc::Movement::NavBot::AutoScopeCancelTime, FSliderEnum::None);
-							}
-							PopTransparent();
-							FDropdown(Vars::Misc::Movement::NavBot::Preferences);
-							FDropdown(Vars::Misc::Movement::NavBot::Blacklist);
-							PushTransparent(Transparent || !(Vars::Misc::Movement::NavBot::Blacklist.Value & Vars::Misc::Movement::NavBot::BlacklistEnum::NormalThreats));
-							{
-								FSlider(Vars::Misc::Movement::NavBot::BlacklistDelay, FSliderEnum::Left);
-							}
-							PopTransparent();
-							PushTransparent(Transparent || !(Vars::Misc::Movement::NavBot::Blacklist.Value & Vars::Misc::Movement::NavBot::BlacklistEnum::DormantThreats));
-							{
-								FSlider(Vars::Misc::Movement::NavBot::BlacklistDormantDelay, FSliderEnum::Right);
-							}
-							PopTransparent();
-							PushTransparent(Transparent || !(Vars::Misc::Movement::NavBot::Blacklist.Value & Vars::Misc::Movement::NavBot::BlacklistEnum::NormalThreats)
-											&& !(Vars::Misc::Movement::NavBot::Blacklist.Value & Vars::Misc::Movement::NavBot::BlacklistEnum::DormantThreats));
-							{
-								FSlider(Vars::Misc::Movement::NavBot::BlacklistSlightDangerLimit);
-							}
-							PopTransparent();
-						}
-						PopTransparent();
-					}
-					PopTransparent();
-				} EndSection();
-				if (Vars::Debug::Options.Value)
-				{
-					if (Section("##Debug Navbot"))
-					{
-						FSlider(Vars::Misc::Movement::NavBot::StickyDangerRange);
-						FSlider(Vars::Misc::Movement::NavBot::ProjectileDangerRange);
-						FToggle(Vars::Misc::Movement::NavBot::AutoScopeUseCachedResults);
-						FTooltip("should double the performance of the movesim method by only checking every 2nd tick");
-					} EndSection();
-				}
+				// if (Section("Navbot", 8))
+				// {
+				// 	PushTransparent(!Vars::Misc::Movement::NavEngine::Enabled.Value);
+				// 	{
+				// 		FToggle(Vars::Misc::Movement::NavBot::Enabled);
+				// 		PushTransparent(!Vars::Misc::Movement::NavBot::Enabled.Value || !Vars::Misc::Movement::NavEngine::Enabled.Value);
+				// 		{
+				// 			FDropdown(Vars::Misc::Movement::NavBot::WeaponSlot);
+				// 			FDropdown(Vars::Misc::Movement::NavBot::RechargeDT);
+				// 			PushTransparent(Transparent || !Vars::Misc::Movement::NavBot::RechargeDT.Value);
+				// 			FSlider(Vars::Misc::Movement::NavBot::RechargeDTDelay, FSliderEnum::None);
+				// 			PopTransparent();
+				// 			FDropdown(Vars::Misc::Movement::NavBot::AutoScope);
+				// 			PushTransparent(Transparent || !Vars::Misc::Movement::NavBot::AutoScope.Value);
+				// 			{
+				// 				FSlider(Vars::Misc::Movement::NavBot::AutoScopeCancelTime, FSliderEnum::None);
+				// 			}
+				// 			PopTransparent();
+				// 			FDropdown(Vars::Misc::Movement::NavBot::Preferences);
+				// 			FDropdown(Vars::Misc::Movement::NavBot::Blacklist);
+				// 			PushTransparent(Transparent || !(Vars::Misc::Movement::NavBot::Blacklist.Value & Vars::Misc::Movement::NavBot::BlacklistEnum::NormalThreats));
+				// 			{
+				// 				FSlider(Vars::Misc::Movement::NavBot::BlacklistDelay, FSliderEnum::Left);
+				// 			}
+				// 			PopTransparent();
+				// 			PushTransparent(Transparent || !(Vars::Misc::Movement::NavBot::Blacklist.Value & Vars::Misc::Movement::NavBot::BlacklistEnum::DormantThreats));
+				// 			{
+				// 				FSlider(Vars::Misc::Movement::NavBot::BlacklistDormantDelay, FSliderEnum::Right);
+				// 			}
+				// 			PopTransparent();
+				// 			PushTransparent(Transparent || !(Vars::Misc::Movement::NavBot::Blacklist.Value & Vars::Misc::Movement::NavBot::BlacklistEnum::NormalThreats)
+				// 							&& !(Vars::Misc::Movement::NavBot::Blacklist.Value & Vars::Misc::Movement::NavBot::BlacklistEnum::DormantThreats));
+				// 			{
+				// 				FSlider(Vars::Misc::Movement::NavBot::BlacklistSlightDangerLimit);
+				// 			}
+				// 			PopTransparent();
+				// 		}
+				// 		PopTransparent();
+				// 	}
+				// 	PopTransparent();
+				// } EndSection();
+				// if (Vars::Debug::Options.Value)
+				// {
+				// 	if (Section("##Debug Navbot"))
+				// 	{
+				// 		FSlider(Vars::Misc::Movement::NavBot::StickyDangerRange);
+				// 		FSlider(Vars::Misc::Movement::NavBot::ProjectileDangerRange);
+				// 		FToggle(Vars::Misc::Movement::NavBot::AutoScopeUseCachedResults);
+				// 		FTooltip("should double the performance of the movesim method by only checking every 2nd tick");
+				// 	} EndSection();
+				// }
 				if (Section("Mann vs. Machine", 8))
 				{
 					FToggle(Vars::Misc::MannVsMachine::InstantRespawn, FToggleEnum::Left);
 					FToggle(Vars::Misc::MannVsMachine::InstantRevive, FToggleEnum::Right);
 					FToggle(Vars::Misc::MannVsMachine::AllowInspect);
+					FToggle(Vars::Misc::MannVsMachine::AutoMvmReadyUp);
 				} EndSection();
 				if (Section("Steam RPC", 8))
 				{

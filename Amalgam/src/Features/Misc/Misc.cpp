@@ -270,6 +270,34 @@ void CMisc::InstantRespawnMVM(CTFPlayer* pLocal)
 	}
 }
 
+void CMisc::AutoMvmReadyUp()
+{
+	if (!Vars::Misc::MannVsMachine::AutoMvmReadyUp.Value)
+		return;
+
+	auto pLocal = H::Entities.GetLocal();
+	if (!pLocal)
+		return;
+
+	auto pGameRules = I::TFGameRules();
+	if (!pGameRules)
+		return;
+
+	if (!pGameRules->m_bPlayingMannVsMachine() || 
+		!pGameRules->m_bInWaitingForPlayers() || 
+		pGameRules->m_iRoundState() != GR_STATE_BETWEEN_RNDS)
+		return;
+
+	const int iLocalIndex = pLocal->entindex();
+	if (iLocalIndex < 0 || iLocalIndex >= 100)
+		return;
+
+	if (!pGameRules->IsPlayerReady(iLocalIndex))
+	{
+		I::EngineClient->ClientCmd_Unrestricted("tournament_player_readystate 1");
+	}
+}
+
 void CMisc::CheatsBypass()
 {
 	static bool bCheatSet = false;
@@ -792,7 +820,7 @@ void CMisc::RandomVotekick(CTFPlayer* pLocal)
 		return;
 
 
-	int iRandom = SDK::RandomInt(0, vPotentialTargets.size() - 1);
+	int iRandom = SDK::RandomInt(0, static_cast<int>(vPotentialTargets.size()) - 1);
 	int iTarget = vPotentialTargets[iRandom];
 
 

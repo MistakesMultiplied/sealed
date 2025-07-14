@@ -63,6 +63,7 @@ void CAutoAirblast::Run(CTFPlayer* pLocal, CTFWeaponBase* pWeapon, CUserCmd* pCm
 
 	bool bShouldBlast = false;
 	const Vec3 vEyePos = pLocal->GetShootPos();
+	bool bTriggerMode = Vars::Aimbot::Projectile::AutoAirblast.Value & Vars::Aimbot::Projectile::AutoAirblastEnum::Trigger;
 
 	float flLatency = std::max(F::Backtrack.GetReal() - 0.03f, 0.f);
 	for (auto pProjectile : H::Entities.GetGroup(EGroupType::WORLD_PROJECTILES))
@@ -80,7 +81,14 @@ void CAutoAirblast::Run(CTFPlayer* pLocal, CTFWeaponBase* pWeapon, CUserCmd* pCm
 
 		Vec3 vRestoreOrigin = pProjectile->GetAbsOrigin();
 		pProjectile->SetAbsOrigin(vOrigin);
-		if (Vars::Aimbot::Projectile::AutoAirblast.Value & Vars::Aimbot::Projectile::AutoAirblastEnum::Redirect)
+		
+		if (bTriggerMode)
+		{
+			// Trigger mode: just check if we can airblast without aiming
+			if (CanAirblastEntity(pLocal, pWeapon, pProjectile, pCmd->viewangles))
+				bShouldBlast = true;
+		}
+		else if (Vars::Aimbot::Projectile::AutoAirblast.Value & Vars::Aimbot::Projectile::AutoAirblastEnum::Redirect)
 		{
 			Vec3 vAngle = Math::CalcAngle(vEyePos, vOrigin);
 			if (CanAirblastEntity(pLocal, pWeapon, pProjectile, vAngle))
