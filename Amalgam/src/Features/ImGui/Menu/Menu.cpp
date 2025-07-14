@@ -672,6 +672,7 @@ void CMenu::MenuVisuals(int iTab)
 					FColorPicker(Vars::Colors::Powerup, FColorPickerEnum::Right);
 					FColorPicker(Vars::Colors::NPC, FColorPickerEnum::Left);
 					FColorPicker(Vars::Colors::Halloween, FColorPickerEnum::Right);
+					FColorPicker(Vars::Colors::HealthBarStatic, FColorPickerEnum::Left);
 				} EndSection();
 				if (Section("Dormancy", 8))
 				{
@@ -798,6 +799,7 @@ void CMenu::MenuVisuals(int iTab)
 					FColorPicker(Vars::Colors::Powerup, FColorPickerEnum::Right);
 					FColorPicker(Vars::Colors::NPC, FColorPickerEnum::Left);
 					FColorPicker(Vars::Colors::Halloween, FColorPickerEnum::Right);
+					FColorPicker(Vars::Colors::HealthBarStatic, FColorPickerEnum::Left);
 					// may move these colors over to other spots
 					PushTransparent(!Vars::Colors::Backtrack.Value.a);
 					{

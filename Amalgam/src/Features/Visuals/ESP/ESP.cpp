@@ -1022,18 +1022,72 @@ void CESP::DrawPlayers()
 
 		if (tCache.m_bHealthBar)
 		{
-			if (tCache.m_flHealth > 1.f)
+			bool bHasBackground = Vars::ESP::Player.Value & Vars::ESP::PlayerEnum::HealthBarBackground;
+			bool bNoBorder = Vars::ESP::Player.Value & Vars::ESP::PlayerEnum::HealthBarNoBorder;
+			bool bColorByHealth = Vars::ESP::Player.Value & Vars::ESP::PlayerEnum::HealthBarColorByHealth;
+			bool bStaticColor = Vars::ESP::Player.Value & Vars::ESP::PlayerEnum::HealthBarStaticColor;
+			
+			Color_t cBorderColor = bNoBorder ? Color_t(0, 0, 0, 0) : Color_t(0, 0, 0, 255);
+			Color_t cHealthColor;
+			
+			if (bStaticColor)
 			{
-				Color_t cColor = Vars::Colors::IndicatorGood.Value;
-				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, 1.f, cColor, { 0, 0, 0, 255 }, ALIGN_BOTTOM, true);
-
-				cColor = Vars::Colors::IndicatorMisc.Value;
-				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth - 1.f, cColor, { 0, 0, 0, 0 }, ALIGN_BOTTOM, true);
+				cHealthColor = Vars::Colors::HealthBarStatic.Value;
+			}
+			else if (bColorByHealth)
+			{
+				if (tCache.m_flHealth > 1.f)
+				{
+					cHealthColor = Vars::Colors::IndicatorMisc.Value;
+				}
+				else
+				{
+					cHealthColor = Vars::Colors::IndicatorBad.Value.Lerp(Vars::Colors::IndicatorGood.Value, tCache.m_flHealth);
+				}
 			}
 			else
 			{
-				Color_t cColor = Vars::Colors::IndicatorBad.Value.Lerp(Vars::Colors::IndicatorGood.Value, tCache.m_flHealth);
-				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth, cColor, { 0, 0, 0, 255 }, ALIGN_BOTTOM, true);
+				// Default behavior
+				if (tCache.m_flHealth > 1.f)
+				{
+					cHealthColor = Vars::Colors::IndicatorGood.Value;
+				}
+				else
+				{
+					cHealthColor = Vars::Colors::IndicatorBad.Value.Lerp(Vars::Colors::IndicatorGood.Value, tCache.m_flHealth);
+				}
+			}
+			
+			if (bHasBackground)
+			{
+				// Draw background (full width)
+				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, 1.f, Color_t(50, 50, 50, 255), cBorderColor, ALIGN_BOTTOM, true);
+				
+				// Draw health bar on top
+				if (tCache.m_flHealth > 1.f)
+				{
+					// Draw base health
+					H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, 1.f, Vars::Colors::IndicatorGood.Value, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
+					// Draw overheal
+					H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth - 1.f, Vars::Colors::IndicatorMisc.Value, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
+				}
+				else
+				{
+					H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth, cHealthColor, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
+				}
+			}
+			else
+			{
+				// Original behavior
+				if (tCache.m_flHealth > 1.f)
+				{
+					H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, 1.f, Vars::Colors::IndicatorGood.Value, cBorderColor, ALIGN_BOTTOM, true);
+					H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth - 1.f, Vars::Colors::IndicatorMisc.Value, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
+				}
+				else
+				{
+					H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth, cHealthColor, cBorderColor, ALIGN_BOTTOM, true);
+				}
 			}
 			lOffset += H::Draw.Scale(6);
 		}
@@ -1122,8 +1176,37 @@ void CESP::DrawBuildings()
 
 		if (tCache.m_bHealthBar)
 		{
-			Color_t cColor = Vars::Colors::IndicatorBad.Value.Lerp(Vars::Colors::IndicatorGood.Value, tCache.m_flHealth);
-			H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth, cColor, { 0, 0, 0, 255 }, ALIGN_BOTTOM, true);
+			bool bHasBackground = Vars::ESP::Building.Value & Vars::ESP::BuildingEnum::HealthBarBackground;
+			bool bNoBorder = Vars::ESP::Building.Value & Vars::ESP::BuildingEnum::HealthBarNoBorder;
+			bool bColorByHealth = Vars::ESP::Building.Value & Vars::ESP::BuildingEnum::HealthBarColorByHealth;
+			bool bStaticColor = Vars::ESP::Building.Value & Vars::ESP::BuildingEnum::HealthBarStaticColor;
+			
+			Color_t cBorderColor = bNoBorder ? Color_t(0, 0, 0, 0) : Color_t(0, 0, 0, 255);
+			Color_t cHealthColor;
+			
+			if (bStaticColor)
+			{
+				cHealthColor = Vars::Colors::HealthBarStatic.Value;
+			}
+			else if (bColorByHealth)
+			{
+				cHealthColor = Vars::Colors::IndicatorBad.Value.Lerp(Vars::Colors::IndicatorGood.Value, tCache.m_flHealth);
+			}
+			else
+			{
+				cHealthColor = Vars::Colors::IndicatorBad.Value.Lerp(Vars::Colors::IndicatorGood.Value, tCache.m_flHealth);
+			}
+			
+			if (bHasBackground)
+			{
+				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, 1.f, Color_t(50, 50, 50, 255), cBorderColor, ALIGN_BOTTOM, true);
+				
+				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth, cHealthColor, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
+			}
+			else
+			{
+				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth, cHealthColor, cBorderColor, ALIGN_BOTTOM, true);
+			}
 			lOffset += H::Draw.Scale(6);
 		}
 
