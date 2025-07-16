@@ -283,14 +283,14 @@ namespace Vars
 				VA_LIST("Off", "Plain", "Smooth", "Silent", "Locking", "Assistive"),
 				Off, Plain, Smooth, Silent, Locking, Assistive);
 			CVarEnum(TargetSelection, "Target selection", 0, NONE, nullptr,
-				VA_LIST("FOV", "Distance"),
-				FOV, Distance);
+				VA_LIST("FOV", "Distance", "Highest HP", "Lowest HP"),
+				FOV, Distance, HighestHP, LowestHP);
 			CVarEnum(Target, "Target", 0b0000001, DROPDOWN_MULTI, nullptr,
 				VA_LIST("Players", "Sentries", "Dispensers", "Teleporters", "Stickies", "NPCs", "Bombs"),
 				Players = 1 << 0, Sentry = 1 << 1, Dispenser = 1 << 2, Teleporter = 1 << 3, Stickies = 1 << 4, NPCs = 1 << 5, Bombs = 1 << 6);
 			CVarEnum(Ignore, "Ignore", 0b000000000, DROPDOWN_MULTI, nullptr,
-				VA_LIST("Friends", "Party", "Invulnerable", "Cloaked", "Unsimulated players", "Dead Ringer", "Vaccinator", "Disguised", "Taunting"),
-				Friends = 1 << 0, Party = 1 << 1, Invulnerable = 1 << 2, Cloaked = 1 << 3, Unsimulated = 1 << 4, DeadRinger = 1 << 5, Vaccinator = 1 << 6, Disguised = 1 << 7, Taunting = 1 << 8);
+				VA_LIST("Friends", "Party", "Invulnerable", "Cloaked", "Unsimulated players", "Dead Ringer", "Vaccinator", "Disguised", "Taunting", "Sentrybuster"),
+				Friends = 1 << 0, Party = 1 << 1, Invulnerable = 1 << 2, Cloaked = 1 << 3, Unsimulated = 1 << 4, DeadRinger = 1 << 5, Vaccinator = 1 << 6, Disguised = 1 << 7, Taunting = 1 << 8, Sentrybuster = 1 << 9);
 			CVar(AimFOV, "Aim FOV", 30.f, SLIDER_CLAMP | SLIDER_PRECISION, 0.f, 360.f);
 			CVar(MaxTargets, "Max targets", 2, SLIDER_MIN, 1, 6);
 			CVar(IgnoreCloak, "Ignore cloak", 100.f, SLIDER_CLAMP | SLIDER_PRECISION, 0.f, 100.f, 10.f, "%g%%");
@@ -300,6 +300,12 @@ namespace Vars
 			CVar(FOVCircle, "FOV Circle", true);
 			CVar(NoSpread, "No spread", false);
 			CVar(PrioritizeNavbot, "Prioritize navbot target", false);
+			CVar(PreferMedics, "Prefer medics", false);
+
+			CVar(SmoothFastStart, "Smooth fast start", false);
+			CVar(SmoothFastEnd, "Smooth fast end", false);
+			CVar(SmoothFastEndStrength, "Fast end strength", 1.5f, SLIDER_CLAMP | SLIDER_PRECISION, 1.0f, 3.0f, 0.1f, "x");
+			CVar(SmartSmooth, "Smart smooth", false);
 
 			CVar(HitscanPeek, "Hitscan peek", 1, NOSAVE | DEBUGVAR, 0, 5);
 			CVar(PeekDTOnly, "Peek DT only", true, NOSAVE | DEBUGVAR);
@@ -457,6 +463,7 @@ namespace Vars
 		CVar(Interp, "Fake interp", 0, SLIDER_CLAMP | SLIDER_PRECISION, 0, 1000, 5);
 		CVar(Window, VA_LIST("Window", "Backtrack window"), 185, SLIDER_CLAMP | SLIDER_PRECISION, 0, 200, 5);
 		CVar(PreferOnShot, "Prefer on shot", false);
+		CVar(AimAtBacktrack, "Aim at backtrack", false);
 
 		CVar(Offset, "Offset", 0, NOSAVE | DEBUGVAR, -1, 1);
 	NAMESPACE_END(Backtrack);
@@ -1071,6 +1078,7 @@ namespace Vars
 				VA_LIST("Off", "Yaw", "Pitch", "Fake"),
 				Off, Yaw, Pitch, Fake);
 			CVar(NoiseSpam, "Noise spam", false);
+			CVar(AchievementSpam, "Achievement spam", false);
 			CVar(AcceptItemDrops, "Auto accept item drops", false);
 			CVar(AntiAFK, "Anti-AFK", false);
 			CVar(AntiAutobalance, "Anti-autobalance", false);

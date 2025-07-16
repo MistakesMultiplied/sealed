@@ -1137,7 +1137,7 @@ namespace ImGui
 			*pVar = !*pVar;
 
 		SetCursorPos({ vOriginalPos.x + H::Draw.Scale(4), vOriginalPos.y + H::Draw.Scale(-5 + 9 * iWraps) });
-		IconImage(*pVar ? ICON_MD_CHECK_BOX : ICON_MD_CHECK_BOX_OUTLINE_BLANK, tColor);
+		IconImage(*pVar ? ICON_MD_TOGGLE_ON : ICON_MD_TOGGLE_OFF, tColor);
 
 		for (size_t i = 0; i < iWraps; i++)
 		{

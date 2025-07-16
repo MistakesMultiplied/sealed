@@ -20,6 +20,7 @@ void CMisc::RunPre(CTFPlayer* pLocal, CUserCmd* pCmd)
 	AntiAFK(pLocal, pCmd);
 	InstantRespawnMVM(pLocal);
 	RandomVotekick(pLocal);
+	AchievementSpam(pLocal);
 
 	if (!pLocal->IsAlive() || pLocal->IsAGhost() || pLocal->m_MoveType() != MOVETYPE_WALK || pLocal->IsSwimming() || pLocal->InCond(TF_COND_SHIELD_CHARGE) || pLocal->InCond(TF_COND_HALLOWEEN_KART))
 		return;
@@ -257,6 +258,82 @@ void CMisc::AntiAFK(CTFPlayer* pLocal, CUserCmd* pCmd)
 	{
 		pCmd->buttons |= I::GlobalVars->tickcount % 2 ? IN_FORWARD : IN_BACK;
 		m_bAntiAFK = true;
+	}
+}
+
+
+void CMisc::AchievementSpam(CTFPlayer* pLocal)
+{
+	if (!Vars::Misc::Automation::AchievementSpam.Value || !pLocal || !pLocal->IsAlive())
+	{
+		m_eAchievementSpamState = AchievementSpamState::IDLE;
+		return;
+	}
+
+	const auto pAchievementMgr = reinterpret_cast<IAchievementMgr * (*)(void)>(U::Memory.GetVirtual(I::EngineClient, 114))();
+	if (!pAchievementMgr)
+	{
+		m_eAchievementSpamState = AchievementSpamState::IDLE;
+		return;
+	}
+
+	switch (m_eAchievementSpamState)
+	{
+	case AchievementSpamState::IDLE:
+	{
+		if (!m_tAchievementSpamTimer.Run(20.0f))
+			return;
+
+		// Kill Everyone You Meet achievement by default
+		// TODO: add a new column to edit achievement timer & number directly in cheat (like you did with autoitem)
+		int specificAchievementID = 2332;
+
+		IAchievement* pAchievement = nullptr;
+		for (int i = 0; i < pAchievementMgr->GetAchievementCount(); i++)
+		{
+			IAchievement* pCurrentAchievement = pAchievementMgr->GetAchievementByIndex(i);
+			if (pCurrentAchievement && pCurrentAchievement->GetAchievementID() == specificAchievementID)
+			{
+				pAchievement = pCurrentAchievement;
+				break;
+			}
+		}
+
+		if (!pAchievement || !pAchievement->GetName())
+			return;
+
+		m_iAchievementSpamID = specificAchievementID;
+		m_sAchievementSpamName = pAchievement->GetName();
+		m_eAchievementSpamState = AchievementSpamState::CLEARING;
+		break;
+	}
+	case AchievementSpamState::CLEARING:
+	{
+		I::SteamUserStats->RequestCurrentStats();
+		I::SteamUserStats->ClearAchievement(m_sAchievementSpamName);
+		I::SteamUserStats->StoreStats();
+
+		m_tAchievementDelayTimer.Update();
+		m_eAchievementSpamState = AchievementSpamState::WAITING;
+		break;
+	}
+	case AchievementSpamState::WAITING:
+	{
+		if (!m_tAchievementDelayTimer.Run(0.1f))
+			return;
+
+		m_eAchievementSpamState = AchievementSpamState::AWARDING;
+		break;
+	}
+	case AchievementSpamState::AWARDING:
+	{
+		I::SteamUserStats->RequestCurrentStats();
+		pAchievementMgr->AwardAchievement(m_iAchievementSpamID);
+		I::SteamUserStats->StoreStats();
+
+		m_eAchievementSpamState = AchievementSpamState::IDLE;
+		break;
+	}
 	}
 }
 

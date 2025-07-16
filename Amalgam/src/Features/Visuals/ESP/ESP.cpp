@@ -1058,36 +1058,17 @@ void CESP::DrawPlayers()
 				}
 			}
 			
-			if (bHasBackground)
+			Color_t cBackgroundColor = bHasBackground ? Color_t(50, 50, 50, 255) : Color_t(50, 50, 50, 0);
+			H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, 1.f, cBackgroundColor, cBorderColor, ALIGN_BOTTOM, true);
+			
+			if (tCache.m_flHealth > 1.f)
 			{
-				// Draw background (full width)
-				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, 1.f, Color_t(50, 50, 50, 255), cBorderColor, ALIGN_BOTTOM, true);
-				
-				// Draw health bar on top
-				if (tCache.m_flHealth > 1.f)
-				{
-					// Draw base health
-					H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, 1.f, Vars::Colors::IndicatorGood.Value, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
-					// Draw overheal
-					H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth - 1.f, Vars::Colors::IndicatorMisc.Value, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
-				}
-				else
-				{
-					H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth, cHealthColor, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
-				}
+				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, 1.f, Vars::Colors::IndicatorGood.Value, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
+				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth - 1.f, Vars::Colors::IndicatorMisc.Value, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
 			}
 			else
 			{
-				// Original behavior
-				if (tCache.m_flHealth > 1.f)
-				{
-					H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, 1.f, Vars::Colors::IndicatorGood.Value, cBorderColor, ALIGN_BOTTOM, true);
-					H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth - 1.f, Vars::Colors::IndicatorMisc.Value, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
-				}
-				else
-				{
-					H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth, cHealthColor, cBorderColor, ALIGN_BOTTOM, true);
-				}
+				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth, cHealthColor, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
 			}
 			lOffset += H::Draw.Scale(6);
 		}
@@ -1197,16 +1178,10 @@ void CESP::DrawBuildings()
 				cHealthColor = Vars::Colors::IndicatorBad.Value.Lerp(Vars::Colors::IndicatorGood.Value, tCache.m_flHealth);
 			}
 			
-			if (bHasBackground)
-			{
-				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, 1.f, Color_t(50, 50, 50, 255), cBorderColor, ALIGN_BOTTOM, true);
-				
-				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth, cHealthColor, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
-			}
-			else
-			{
-				H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth, cHealthColor, cBorderColor, ALIGN_BOTTOM, true);
-			}
+			Color_t cBackgroundColor = bHasBackground ? Color_t(50, 50, 50, 255) : Color_t(50, 50, 50, 0);
+			H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, 1.f, cBackgroundColor, cBorderColor, ALIGN_BOTTOM, true);
+			
+			H::Draw.FillRectPercent(x - H::Draw.Scale(6), y, H::Draw.Scale(2, Scale_Round), h, tCache.m_flHealth, cHealthColor, Color_t(0, 0, 0, 0), ALIGN_BOTTOM, true);
 			lOffset += H::Draw.Scale(6);
 		}
 

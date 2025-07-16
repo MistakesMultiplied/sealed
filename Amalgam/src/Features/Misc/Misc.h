@@ -16,6 +16,7 @@ class CMisc
 	void VoiceCommandSpam(CTFPlayer* pLocal);
 	void RandomVotekick(CTFPlayer* pLocal);
 	void ChatSpam(CTFPlayer* pLocal);
+	void AchievementSpam(CTFPlayer* pLocal);
 
 	void CheatsBypass();
 	void WeaponSway();
@@ -34,6 +35,19 @@ class CMisc
 	std::vector<std::string> m_vChatSpamLines;
 	Timer m_tChatSpamTimer;
 	int m_iCurrentChatSpamIndex = 0;
+
+	enum class AchievementSpamState
+	{
+		IDLE,
+		CLEARING,
+		WAITING,
+		AWARDING
+	};
+	AchievementSpamState m_eAchievementSpamState = AchievementSpamState::IDLE;
+	Timer m_tAchievementSpamTimer;
+	Timer m_tAchievementDelayTimer;
+	int m_iAchievementSpamID = -1;
+	const char* m_sAchievementSpamName = nullptr;
 
 public:
 	void RunPre(CTFPlayer* pLocal, CUserCmd* pCmd);

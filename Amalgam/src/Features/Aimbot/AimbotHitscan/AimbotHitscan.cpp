@@ -52,84 +52,89 @@ std::vector<Target_t> CAimbotHitscan::GetTargets(CTFPlayer* pLocal, CTFWeaponBas
 				continue;
 
 			float flDistTo = iSort == Vars::Aimbot::General::TargetSelectionEnum::Distance ? vLocalPos.DistTo(vPos) : 0.f;
-			vTargets.emplace_back(pEntity, TargetEnum::Player, vPos, vAngleTo, flFOVTo, flDistTo, bTeammate ? 0 : F::AimbotGlobal.GetPriority(pEntity->entindex()));
+			int nHealth = pEntity->As<CTFPlayer>()->m_iHealth();
+			vTargets.emplace_back(pEntity, TargetEnum::Player, vPos, vAngleTo, flFOVTo, flDistTo, bTeammate ? 0 : F::AimbotGlobal.GetPriority(pEntity->entindex()), -1, nHealth);
 		}
 
 		if (pWeapon->GetWeaponID() == TF_WEAPON_MEDIGUN)
 			return vTargets;
 	}
 
-	if (Vars::Aimbot::General::Target.Value)
-	{
-		for (auto pEntity : H::Entities.GetGroup(EGroupType::BUILDINGS_ENEMIES))
+			if (Vars::Aimbot::General::Target.Value)
 		{
-			if (F::AimbotGlobal.ShouldIgnore(pEntity, pLocal, pWeapon))
-				continue;
+			for (auto pEntity : H::Entities.GetGroup(EGroupType::BUILDINGS_ENEMIES))
+			{
+				if (F::AimbotGlobal.ShouldIgnore(pEntity, pLocal, pWeapon))
+					continue;
 
-			Vec3 vPos = pEntity->GetCenter();
-			Vec3 vAngleTo = Math::CalcAngle(vLocalPos, vPos);
-			float flFOVTo = Math::CalcFov(vLocalAngles, vAngleTo);
-			if (flFOVTo > Vars::Aimbot::General::AimFOV.Value)
-				continue;
+				Vec3 vPos = pEntity->GetCenter();
+				Vec3 vAngleTo = Math::CalcAngle(vLocalPos, vPos);
+				float flFOVTo = Math::CalcFov(vLocalAngles, vAngleTo);
+				if (flFOVTo > Vars::Aimbot::General::AimFOV.Value)
+					continue;
 
-			float flDistTo = iSort == Vars::Aimbot::General::TargetSelectionEnum::Distance ? vLocalPos.DistTo(vPos) : 0.f;
-			vTargets.emplace_back(pEntity, pEntity->IsSentrygun() ? TargetEnum::Sentry : pEntity->IsDispenser() ? TargetEnum::Dispenser : TargetEnum::Teleporter, vPos, vAngleTo, flFOVTo, flDistTo);
+				float flDistTo = iSort == Vars::Aimbot::General::TargetSelectionEnum::Distance ? vLocalPos.DistTo(vPos) : 0.f;
+				int nHealth = pEntity->As<CBaseObject>()->m_iHealth();
+				vTargets.emplace_back(pEntity, pEntity->IsSentrygun() ? TargetEnum::Sentry : pEntity->IsDispenser() ? TargetEnum::Dispenser : TargetEnum::Teleporter, vPos, vAngleTo, flFOVTo, flDistTo, 0, -1, nHealth);
+			}
 		}
-	}
 
-	if (Vars::Aimbot::General::Target.Value & Vars::Aimbot::General::TargetEnum::Stickies)
-	{
-		for (auto pEntity : H::Entities.GetGroup(EGroupType::WORLD_PROJECTILES))
+			if (Vars::Aimbot::General::Target.Value & Vars::Aimbot::General::TargetEnum::Stickies)
 		{
-			if (F::AimbotGlobal.ShouldIgnore(pEntity, pLocal, pWeapon))
-				continue;
+			for (auto pEntity : H::Entities.GetGroup(EGroupType::WORLD_PROJECTILES))
+			{
+				if (F::AimbotGlobal.ShouldIgnore(pEntity, pLocal, pWeapon))
+					continue;
 
-			Vec3 vPos = pEntity->m_vecOrigin();
-			Vec3 vAngleTo = Math::CalcAngle(vLocalPos, vPos);
-			float flFOVTo = Math::CalcFov(vLocalAngles, vAngleTo);
-			if (flFOVTo > Vars::Aimbot::General::AimFOV.Value)
-				continue;
+				Vec3 vPos = pEntity->m_vecOrigin();
+				Vec3 vAngleTo = Math::CalcAngle(vLocalPos, vPos);
+				float flFOVTo = Math::CalcFov(vLocalAngles, vAngleTo);
+				if (flFOVTo > Vars::Aimbot::General::AimFOV.Value)
+					continue;
 
-			float flDistTo = iSort == Vars::Aimbot::General::TargetSelectionEnum::Distance ? vLocalPos.DistTo(vPos) : 0.f;
-			vTargets.emplace_back(pEntity, TargetEnum::Sticky, vPos, vAngleTo, flFOVTo, flDistTo);
+				float flDistTo = iSort == Vars::Aimbot::General::TargetSelectionEnum::Distance ? vLocalPos.DistTo(vPos) : 0.f;
+				int nHealth = 0; // Projectiles don't have health
+				vTargets.emplace_back(pEntity, TargetEnum::Sticky, vPos, vAngleTo, flFOVTo, flDistTo, 0, -1, nHealth);
+			}
 		}
-	}
 
-	if (Vars::Aimbot::General::Target.Value & Vars::Aimbot::General::TargetEnum::NPCs)
-	{
-		for (auto pEntity : H::Entities.GetGroup(EGroupType::WORLD_NPC))
+			if (Vars::Aimbot::General::Target.Value & Vars::Aimbot::General::TargetEnum::NPCs)
 		{
-			if (F::AimbotGlobal.ShouldIgnore(pEntity, pLocal, pWeapon))
-				continue;
+			for (auto pEntity : H::Entities.GetGroup(EGroupType::WORLD_NPC))
+			{
+				if (F::AimbotGlobal.ShouldIgnore(pEntity, pLocal, pWeapon))
+					continue;
 
-			Vec3 vPos = pEntity->GetCenter();
-			Vec3 vAngleTo = Math::CalcAngle(vLocalPos, vPos);
-			float flFOVTo = Math::CalcFov(vLocalAngles, vAngleTo);
-			if (flFOVTo > Vars::Aimbot::General::AimFOV.Value)
-				continue;
+				Vec3 vPos = pEntity->GetCenter();
+				Vec3 vAngleTo = Math::CalcAngle(vLocalPos, vPos);
+				float flFOVTo = Math::CalcFov(vLocalAngles, vAngleTo);
+				if (flFOVTo > Vars::Aimbot::General::AimFOV.Value)
+					continue;
 
-			float flDistTo = iSort == Vars::Aimbot::General::TargetSelectionEnum::Distance ? vLocalPos.DistTo(vPos) : 0.f;
-			vTargets.emplace_back(pEntity, TargetEnum::NPC, vPos, vAngleTo, flFOVTo, flDistTo);
+				float flDistTo = iSort == Vars::Aimbot::General::TargetSelectionEnum::Distance ? vLocalPos.DistTo(vPos) : 0.f;
+				int nHealth = pEntity->IsPlayer() ? pEntity->As<CTFPlayer>()->m_iHealth() : 0; // NPCs might not have health
+				vTargets.emplace_back(pEntity, TargetEnum::NPC, vPos, vAngleTo, flFOVTo, flDistTo, 0, -1, nHealth);
+			}
 		}
-	}
 
-	if (Vars::Aimbot::General::Target.Value & Vars::Aimbot::General::TargetEnum::Bombs)
-	{
-		for (auto pEntity : H::Entities.GetGroup(EGroupType::WORLD_BOMBS))
+			if (Vars::Aimbot::General::Target.Value & Vars::Aimbot::General::TargetEnum::Bombs)
 		{
-			Vec3 vPos = pEntity->GetCenter();
-			Vec3 vAngleTo = Math::CalcAngle(vLocalPos, vPos);
-			float flFOVTo = Math::CalcFov(vLocalAngles, vAngleTo);
-			if (flFOVTo > Vars::Aimbot::General::AimFOV.Value)
-				continue;
+			for (auto pEntity : H::Entities.GetGroup(EGroupType::WORLD_BOMBS))
+			{
+				Vec3 vPos = pEntity->GetCenter();
+				Vec3 vAngleTo = Math::CalcAngle(vLocalPos, vPos);
+				float flFOVTo = Math::CalcFov(vLocalAngles, vAngleTo);
+				if (flFOVTo > Vars::Aimbot::General::AimFOV.Value)
+					continue;
 
-			if (!F::AimbotGlobal.ValidBomb(pLocal, pWeapon, pEntity))
-				continue;
+				if (!F::AimbotGlobal.ValidBomb(pLocal, pWeapon, pEntity))
+					continue;
 
-			float flDistTo = iSort == Vars::Aimbot::General::TargetSelectionEnum::Distance ? vLocalPos.DistTo(vPos) : 0.f;
-			vTargets.emplace_back(pEntity, TargetEnum::Bomb, vPos, vAngleTo, flFOVTo, flDistTo);
+				float flDistTo = iSort == Vars::Aimbot::General::TargetSelectionEnum::Distance ? vLocalPos.DistTo(vPos) : 0.f;
+				int nHealth = 0; // Bombs don't have health
+				vTargets.emplace_back(pEntity, TargetEnum::Bomb, vPos, vAngleTo, flFOVTo, flDistTo, 0, -1, nHealth);
+			}
 		}
-	}
 
 	return vTargets;
 }
@@ -146,6 +151,23 @@ std::vector<Target_t> CAimbotHitscan::SortTargets(CTFPlayer* pLocal, CTFWeaponBa
 		std::sort((vTargets).begin(), (vTargets).end(), [&](const Target_t& a, const Target_t& b) -> bool
 				  {
 					  return a.m_pEntity->entindex() == F::NavBot.m_iStayNearTargetIdx && b.m_pEntity->entindex() != F::NavBot.m_iStayNearTargetIdx;
+				  });
+	}
+
+	// Prioritize medics
+	if (Vars::Aimbot::General::PreferMedics.Value)
+	{
+		std::sort((vTargets).begin(), (vTargets).end(), [&](const Target_t& a, const Target_t& b) -> bool
+				  {
+					  if (a.m_pEntity->IsPlayer() && b.m_pEntity->IsPlayer())
+					  {
+						  auto pPlayerA = a.m_pEntity->As<CTFPlayer>();
+						  auto pPlayerB = b.m_pEntity->As<CTFPlayer>();
+						  bool bIsMedicA = pPlayerA->m_iClass() == TF_CLASS_MEDIC;
+						  bool bIsMedicB = pPlayerB->m_iClass() == TF_CLASS_MEDIC;
+						  return bIsMedicA && !bIsMedicB;
+					  }
+					  return false;
 				  });
 	}
 
@@ -297,7 +319,7 @@ int CAimbotHitscan::CanHit(Target_t& tTarget, CTFPlayer* pLocal, CTFWeaponBase* 
 	if (!pSet) return false;
 
 	std::vector<TickRecord*> vRecords = {};
-	if (F::Backtrack.GetRecords(tTarget.m_pEntity, vRecords))
+	if (Vars::Backtrack::AimAtBacktrack.Value && F::Backtrack.GetRecords(tTarget.m_pEntity, vRecords))
 	{
 		vRecords = F::Backtrack.GetValidRecords(vRecords, pLocal);
 		if (vRecords.empty())
@@ -676,9 +698,103 @@ bool CAimbotHitscan::Aim(Vec3 vCurAngle, Vec3 vToAngle, Vec3& vOut, int iMethod)
 		vOut = vToAngle;
 		break;
 	case Vars::Aimbot::General::AimTypeEnum::Smooth:
-		vOut = vCurAngle.LerpAngle(vToAngle, Vars::Aimbot::General::AssistStrength.Value / 100.f);
+	{
+		Vec3 vDelta = vToAngle - vCurAngle;
+		Math::ClampAngles(vDelta);
+		
+		float flSmoothFactor = Vars::Aimbot::General::AssistStrength.Value;
+		
+		// Velocity compensation to reduce missing
+		if (auto pTarget = H::Entities.GetTarget())
+		{
+			if (auto pPlayer = pTarget->As<CTFPlayer>())
+			{
+				Vec3 vTargetVelocity = pPlayer->m_vecVelocity();
+				float flTargetSpeed = vTargetVelocity.Length2D();
+				
+				// Compensate for target movement
+				if (flTargetSpeed > 50.f)
+				{
+					// Calculate lead angle based on target velocity
+					Vec3 vLocalPos = pLocal->GetShootPos();
+					Vec3 vTargetPos = pPlayer->GetShootPos();
+					float flDistance = vLocalPos.DistTo(vTargetPos);
+					
+					if (flDistance > 0.f)
+					{
+						// Simple lead calculation
+						float flTimeToTarget = flDistance / 1100.f; // Approximate bullet speed
+						Vec3 vLeadPos = vTargetPos + vTargetVelocity * flTimeToTarget;
+						
+						// Recalculate angle to lead position
+						Vec3 vNewAngle;
+						Math::VectorAngles(vLeadPos - vLocalPos, vNewAngle);
+						Vec3 vLeadDelta = vNewAngle - vCurAngle;
+						Math::ClampAngles(vLeadDelta);
+						
+						// Blend between current and lead angle based on target speed
+						float flLeadBlend = std::min(flTargetSpeed / 300.f, 0.7f);
+						vDelta = vDelta.LerpAngle(vLeadDelta, flLeadBlend);
+					}
+				}
+			}
+		}
+		
+		if (Vars::Aimbot::General::SmoothFastStart.Value)
+		{
+			float flDistance = vDelta.Length2D();
+			if (flDistance > 45.f)
+				flSmoothFactor = std::min(flSmoothFactor * 1.5f, 100.f);
+		}
+		
+		if (Vars::Aimbot::General::SmoothFastEnd.Value)
+		{
+			float flDistance = vDelta.Length2D();
+			// Improved fast end logic with configurable strength
+			if (flDistance < 15.f) // Increased threshold for better responsiveness
+			{
+				float flMultiplier = 1.0f;
+				float flStrength = Vars::Aimbot::General::SmoothFastEndStrength.Value;
+				
+				if (flDistance < 5.f)
+					flMultiplier = flStrength * 1.3f; // Much faster when very close
+				else if (flDistance < 10.f)
+					flMultiplier = flStrength * 1.1f; // Faster when moderately close
+				else
+					flMultiplier = flStrength; // Slightly faster when approaching
+				
+				flSmoothFactor = std::min(flSmoothFactor * flMultiplier, 100.f);
+			}
+		}
+		
+		if (Vars::Aimbot::General::SmartSmooth.Value)
+		{
+			float flDistance = vDelta.Length2D();
+			if (flDistance > 30.f)
+				flSmoothFactor = std::min(flSmoothFactor * 1.2f, 100.f);
+			else if (flDistance < 5.f)
+				flSmoothFactor = std::min(flSmoothFactor * 1.4f, 100.f);
+		}
+		
+		// Adaptive smoothing based on target movement
+		if (auto pTarget = H::Entities.GetTarget())
+		{
+			if (auto pPlayer = pTarget->As<CTFPlayer>())
+			{
+				float flTargetSpeed = pPlayer->m_vecVelocity().Length2D();
+				if (flTargetSpeed > 100.f)
+				{
+					// Reduce smoothing for fast-moving targets to improve accuracy
+					flSmoothFactor = std::min(flSmoothFactor * 1.3f, 100.f);
+				}
+			}
+		}
+		
+		const float flSmoothDiv = Math::RemapVal(flSmoothFactor, 1.f, 100.f, 1.5f, 30.f);
+		vOut = vCurAngle + vDelta / flSmoothDiv;
 		bReturn = true;
 		break;
+	}
 	case Vars::Aimbot::General::AimTypeEnum::Assistive:
 		Vec3 vMouseDelta = G::CurrentUserCmd->viewangles.DeltaAngle(G::LastUserCmd->viewangles);
 		Vec3 vTargetDelta = vToAngle.DeltaAngle(G::LastUserCmd->viewangles);
@@ -870,7 +986,7 @@ void CAimbotHitscan::Run(CTFPlayer* pLocal, CTFWeaponBase* pWeapon, CUserCmd* pC
 			if (tTarget.m_pEntity->IsPlayer())
 				F::Resolver.HitscanRan(pLocal, tTarget.m_pEntity->As<CTFPlayer>(), pWeapon, tTarget.m_nAimedHitbox);
 
-			if (tTarget.m_bBacktrack)
+			if (tTarget.m_bBacktrack && Vars::Backtrack::AimAtBacktrack.Value)
 				pCmd->tick_count = TIME_TO_TICKS(tTarget.m_pRecord->m_flSimTime + F::Backtrack.GetFakeInterp());
 		}
 		DrawVisuals(pLocal, tTarget, nWeaponID);

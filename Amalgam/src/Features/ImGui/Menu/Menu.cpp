@@ -29,12 +29,17 @@ void CMenu::DrawMenu()
 		ImVec2 vWindowSize = GetWindowSize();
 		float flSideSize = 140.f;
 
-		PushClipRect({ 0, 0 }, { ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y }, false);
-		RenderTwoToneBackground(H::Draw.Scale(flSideSize), F::Render.Background0, F::Render.Background1, F::Render.Background2, 0.f, false);
-		PopClipRect();
+			// Draw darker overlay on top of Matrix background
+	ImDrawList* pDrawList = GetWindowDrawList();
+	ImVec2 vScreenSize = GetIO().DisplaySize;
+	ImColor overlayColor(0.0f, 0.0f, 0.0f, 0.7f); // Dark overlay with 70% opacity
+	pDrawList->AddRectFilled({ 0, 0 }, vScreenSize, overlayColor);
+	
+	PushClipRect({ 0, 0 }, { ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y }, false);
+	RenderTwoToneBackground(H::Draw.Scale(flSideSize), F::Render.Background0, F::Render.Background1, F::Render.Background2, 0.f, false);
+	PopClipRect();
 
 		ImVec2 vDrawPos = GetDrawPos();
-		auto pDrawList = GetWindowDrawList();
 		
 		float flOffset = 0.f;
 		Bind_t tBind;
@@ -169,6 +174,11 @@ void CMenu::MenuAimbot(int iTab)
 					FToggle(Vars::CritHack::AlwaysMeleeCrit, FToggleEnum::Left);
 					FToggle(Vars::Aimbot::General::NoSpread, FToggleEnum::Right);
 					FToggle(Vars::Aimbot::General::PrioritizeNavbot, FToggleEnum::Left);
+					FToggle(Vars::Aimbot::General::PreferMedics, FToggleEnum::Right);
+					FToggle(Vars::Aimbot::General::SmoothFastStart, FToggleEnum::Left);
+					FToggle(Vars::Aimbot::General::SmoothFastEnd, FToggleEnum::Right);
+					FSlider(Vars::Aimbot::General::SmoothFastEndStrength, FSliderEnum::Left);
+					FToggle(Vars::Aimbot::General::SmartSmooth, FToggleEnum::Right);
 				} EndSection();
 				if (Vars::Debug::Options.Value)
 				{
@@ -189,6 +199,7 @@ void CMenu::MenuAimbot(int iTab)
 					FSlider(Vars::Backtrack::Latency);
 					FSlider(Vars::Backtrack::Interp);
 					FSlider(Vars::Backtrack::Window);
+					FToggle(Vars::Backtrack::AimAtBacktrack, FToggleEnum::Left);
 					//FToggle(Vars::Backtrack::PreferOnShot, FToggleEnum::Right);
 				} EndSection();
 				if (Vars::Debug::Options.Value)
@@ -1541,6 +1552,7 @@ void CMenu::MenuMisc(int iTab)
 					PopTransparent();
 					FToggle(Vars::Misc::Automation::NoiseSpam, FToggleEnum::Left);
 					FDropdown(Vars::Misc::Automation::VoiceCommandSpam);
+					FToggle(Vars::Misc::Automation::AchievementSpam, FToggleEnum::Left);
 				} EndSection();
 				if (Section("Auto-Item"))
 				{
@@ -4217,6 +4229,28 @@ static inline void SquareConstraints(ImGuiSizeCallbackData* data)
 	data->DesiredSize.x = data->DesiredSize.y = (data->DesiredSize.x + data->DesiredSize.y) / 2;
 }
 
+void CMenu::DrawMatrixBackground()
+{
+	using namespace ImGui;
+	
+	if (!m_bIsOpen)
+	{
+		// Clear matrix effect when menu is closed
+		m_MatrixBG.Clear();
+		return;
+	}
+	
+	float flCurrentTime = GetTime();
+	float flDeltaTime = flCurrentTime - m_flLastFrameTime;
+	m_flLastFrameTime = flCurrentTime;
+	
+	ImVec2 vScreenSize = GetIO().DisplaySize;
+	m_MatrixBG.Update(flDeltaTime, vScreenSize);
+	
+	ImDrawList* pDrawList = GetBackgroundDrawList();
+	m_MatrixBG.Render(pDrawList);
+}
+
 void CMenu::Render()
 {
 	using namespace ImGui;
@@ -4237,7 +4271,17 @@ void CMenu::Render()
 		U::KeyHandler.StoreKey(VK_F11);
 	}
 	if (U::KeyHandler.Pressed(Vars::Menu::MenuPrimaryKey.Value) || U::KeyHandler.Pressed(Vars::Menu::MenuSecondaryKey.Value))
+	{
+		bool bWasOpen = m_bIsOpen;
 		I::MatSystemSurface->SetCursorAlwaysVisible(m_bIsOpen = !m_bIsOpen);
+		
+		// Clear Matrix background when menu is closed
+		if (bWasOpen && !m_bIsOpen)
+			m_MatrixBG.Clear();
+	}
+
+	// Draw Matrix background first (behind everything)
+	DrawMatrixBackground();
 
 	PushFont(F::Render.FontRegular);
 

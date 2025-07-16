@@ -337,8 +337,9 @@ void CDraw::LineRectOutline(int x, int y, int w, int h, const Color_t& tColor, c
 }
 void CDraw::FillRectPercent(int x, int y, int w, int h, float t, const Color_t& tColor, const Color_t& tColorOut, const EAlign& eAlign, bool bAdjust)
 {
-	if (!bAdjust)
-		FillRect(x - 1, y - 1, w + 2, h + 2, tColorOut);
+	if (tColorOut.a > 0)
+		LineRect(x - 1, y - 1, w + 2, h + 2, tColorOut);
+
 	int nw = w, nh = h;
 	switch (eAlign)
 	{
@@ -347,8 +348,6 @@ void CDraw::FillRectPercent(int x, int y, int w, int h, float t, const Color_t& 
 	case ALIGN_TOP: nh *= t; break;
 	case ALIGN_BOTTOM: nh *= t; y += h - nh; break;
 	}
-	if (bAdjust)
-		FillRect(x - 1, y - 1, nw + 2, nh + 2, tColorOut);
 	FillRect(x, y, nw, nh, tColor);
 }
 void CDraw::FillRoundRect(int x, int y, int w, int h, int iRadius, const Color_t& tColor, int iCount)

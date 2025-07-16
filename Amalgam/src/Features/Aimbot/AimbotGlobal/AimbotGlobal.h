@@ -14,6 +14,7 @@ struct Target_t
 	float m_flDistTo = std::numeric_limits<float>::max();
 	int m_nPriority = 0;
 	int m_nAimedHitbox = -1;
+	int m_nHealth = 0;
 
 	TickRecord* m_pRecord = nullptr;
 	bool m_bBacktrack = false;

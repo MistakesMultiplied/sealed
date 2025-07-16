@@ -26,7 +26,8 @@ std::vector<Target_t> CAimbotMelee::GetTargets(CTFPlayer* pLocal, CTFWeaponBase*
 				continue;
 
 			float flDistTo = vLocalPos.DistTo(vPos);
-			vTargets.emplace_back(pEntity, TargetEnum::Player, vPos, vAngleTo, flFOVTo, flDistTo, bTeammate ? 0 : F::AimbotGlobal.GetPriority(pEntity->entindex()));
+			int nHealth = pEntity->As<CTFPlayer>()->m_iHealth();
+			vTargets.emplace_back(pEntity, TargetEnum::Player, vPos, vAngleTo, flFOVTo, flDistTo, bTeammate ? 0 : F::AimbotGlobal.GetPriority(pEntity->entindex()), -1, nHealth);
 		}
 	}
 
@@ -50,7 +51,8 @@ std::vector<Target_t> CAimbotMelee::GetTargets(CTFPlayer* pLocal, CTFWeaponBase*
 				continue;
 
 			float flDistTo = vLocalPos.DistTo(vPos);
-			vTargets.emplace_back(pEntity, pEntity->IsSentrygun() ? TargetEnum::Sentry : pEntity->IsDispenser() ? TargetEnum::Dispenser : TargetEnum::Teleporter, vPos, vAngleTo, flFOVTo, flDistTo);
+			int nHealth = pEntity->As<CBaseObject>()->m_iHealth();
+			vTargets.emplace_back(pEntity, pEntity->IsSentrygun() ? TargetEnum::Sentry : pEntity->IsDispenser() ? TargetEnum::Dispenser : TargetEnum::Teleporter, vPos, vAngleTo, flFOVTo, flDistTo, 0, -1, nHealth);
 		}
 	}
 
@@ -68,7 +70,8 @@ std::vector<Target_t> CAimbotMelee::GetTargets(CTFPlayer* pLocal, CTFWeaponBase*
 				continue;
 
 			float flDistTo = vLocalPos.DistTo(vPos);
-			vTargets.emplace_back(pEntity, TargetEnum::NPC, vPos, vAngleTo, flFOVTo, flDistTo);
+			int nHealth = pEntity->IsPlayer() ? pEntity->As<CTFPlayer>()->m_iHealth() : 0;
+			vTargets.emplace_back(pEntity, TargetEnum::NPC, vPos, vAngleTo, flFOVTo, flDistTo, 0, -1, nHealth);
 		}
 	}
 
@@ -94,7 +97,25 @@ std::vector<Target_t> CAimbotMelee::SortTargets(CTFPlayer* pLocal, CTFWeaponBase
 {
 	auto vTargets = GetTargets(pLocal, pWeapon);
 
-	F::AimbotGlobal.SortTargets(vTargets, Vars::Aimbot::General::TargetSelectionEnum::Distance);
+	F::AimbotGlobal.SortTargets(vTargets, Vars::Aimbot::General::TargetSelection.Value);
+
+	// Prioritize medics
+	if (Vars::Aimbot::General::PreferMedics.Value)
+	{
+		std::sort((vTargets).begin(), (vTargets).end(), [&](const Target_t& a, const Target_t& b) -> bool
+				  {
+					  if (a.m_pEntity->IsPlayer() && b.m_pEntity->IsPlayer())
+					  {
+						  auto pPlayerA = a.m_pEntity->As<CTFPlayer>();
+						  auto pPlayerB = b.m_pEntity->As<CTFPlayer>();
+						  bool bIsMedicA = pPlayerA->m_iClass() == TF_CLASS_MEDIC;
+						  bool bIsMedicB = pPlayerB->m_iClass() == TF_CLASS_MEDIC;
+						  return bIsMedicA && !bIsMedicB;
+					  }
+					  return false;
+				  });
+	}
+
 	vTargets.resize(std::min(size_t(Vars::Aimbot::General::MaxTargets.Value), vTargets.size()));
 	F::AimbotGlobal.SortPriority(vTargets);
 	return vTargets;
@@ -268,7 +289,7 @@ int CAimbotMelee::CanHit(Target_t& tTarget, CTFPlayer* pLocal, CTFWeaponBase* pW
 	auto& vSimRecords = m_mRecordMap[tTarget.m_pEntity->entindex()];
 
 	std::vector<TickRecord*> vRecords = {};
-	if (F::Backtrack.GetRecords(tTarget.m_pEntity, vRecords))
+	if (Vars::Backtrack::AimAtBacktrack.Value && F::Backtrack.GetRecords(tTarget.m_pEntity, vRecords))
 	{
 		if (!vRecords.empty())
 		{
@@ -383,9 +404,106 @@ bool CAimbotMelee::Aim(Vec3 vCurAngle, Vec3 vToAngle, Vec3& vOut, int iMethod)
 		vOut = vToAngle;
 		break;
 	case Vars::Aimbot::General::AimTypeEnum::Smooth:
-		vOut = vCurAngle.LerpAngle(vToAngle, Vars::Aimbot::General::AssistStrength.Value / 100.f);
+	{
+		Vec3 vDelta = vToAngle - vCurAngle;
+		Math::ClampAngles(vDelta);
+		
+		float flSmoothFactor = Vars::Aimbot::General::AssistStrength.Value;
+		
+		// Velocity compensation for melee weapons
+		if (auto pTarget = H::Entities.GetTarget())
+		{
+			if (auto pPlayer = pTarget->As<CTFPlayer>())
+			{
+				Vec3 vTargetVelocity = pPlayer->m_vecVelocity();
+				float flTargetSpeed = vTargetVelocity.Length2D();
+				
+				// Melee-specific compensation for close-range combat
+				if (flTargetSpeed > 20.f)
+				{
+					Vec3 vLocalPos = pLocal->GetShootPos();
+					Vec3 vTargetPos = pPlayer->GetShootPos();
+					float flDistance = vLocalPos.DistTo(vTargetPos);
+					
+					if (flDistance > 0.f && flDistance < 200.f) // Only compensate at close range
+					{
+						// Melee lead calculation (shorter time due to close range)
+						float flTimeToTarget = flDistance / 800.f; // Melee attack speed
+						Vec3 vLeadPos = vTargetPos + vTargetVelocity * flTimeToTarget;
+						
+						// Recalculate angle to lead position
+						Vec3 vNewAngle;
+						Math::VectorAngles(vLeadPos - vLocalPos, vNewAngle);
+						Vec3 vLeadDelta = vNewAngle - vCurAngle;
+						Math::ClampAngles(vLeadDelta);
+						
+						// Moderate lead compensation for melee
+						float flLeadBlend = std::min(flTargetSpeed / 250.f, 0.6f);
+						vDelta = vDelta.LerpAngle(vLeadDelta, flLeadBlend);
+					}
+				}
+			}
+		}
+		
+		// Smooth fast start logic
+		if (Vars::Aimbot::General::SmoothFastStart.Value)
+		{
+			float flDistance = vDelta.Length2D();
+			if (flDistance > 45.f) // If target is far, smooth faster
+				flSmoothFactor = std::min(flSmoothFactor * 1.5f, 100.f);
+		}
+		
+		// Smooth fast end logic
+		if (Vars::Aimbot::General::SmoothFastEnd.Value)
+		{
+			float flDistance = vDelta.Length2D();
+			// Improved fast end logic with configurable strength
+			if (flDistance < 15.f) // Increased threshold for better responsiveness
+			{
+				float flMultiplier = 1.0f;
+				float flStrength = Vars::Aimbot::General::SmoothFastEndStrength.Value;
+				
+				if (flDistance < 5.f)
+					flMultiplier = flStrength * 1.3f; // Much faster when very close
+				else if (flDistance < 10.f)
+					flMultiplier = flStrength * 1.1f; // Faster when moderately close
+				else
+					flMultiplier = flStrength; // Slightly faster when approaching
+				
+				flSmoothFactor = std::min(flSmoothFactor * flMultiplier, 100.f);
+			}
+		}
+		
+		// Smart smooth logic
+		if (Vars::Aimbot::General::SmartSmooth.Value)
+		{
+			float flDistance = vDelta.Length2D();
+			// Adaptive smoothing based on distance and speed
+			if (flDistance > 30.f)
+				flSmoothFactor = std::min(flSmoothFactor * 1.2f, 100.f);
+			else if (flDistance < 5.f)
+				flSmoothFactor = std::min(flSmoothFactor * 1.4f, 100.f);
+		}
+		
+		// Adaptive smoothing for melee weapons
+		if (auto pTarget = H::Entities.GetTarget())
+		{
+			if (auto pPlayer = pTarget->As<CTFPlayer>())
+			{
+				float flTargetSpeed = pPlayer->m_vecVelocity().Length2D();
+				if (flTargetSpeed > 60.f)
+				{
+					// Reduce smoothing for fast-moving targets in melee
+					flSmoothFactor = std::min(flSmoothFactor * 1.2f, 100.f);
+				}
+			}
+		}
+		
+		const float flSmoothDiv = Math::RemapVal(flSmoothFactor, 1.f, 100.f, 1.5f, 30.f);
+		vOut = vCurAngle + vDelta / flSmoothDiv;
 		bReturn = true;
 		break;
+	}
 	case Vars::Aimbot::General::AimTypeEnum::Assistive:
 		Vec3 vMouseDelta = G::CurrentUserCmd->viewangles.DeltaAngle(G::LastUserCmd->viewangles);
 		Vec3 vTargetDelta = vToAngle.DeltaAngle(G::LastUserCmd->viewangles);
@@ -565,7 +683,7 @@ void CAimbotMelee::Run(CTFPlayer* pLocal, CTFWeaponBase* pWeapon, CUserCmd* pCmd
 		G::Attacking = SDK::IsAttacking(pLocal, pWeapon, pCmd, true);
 		if (G::Attacking == 1)
 		{
-			if (tTarget.m_bBacktrack)
+			if (tTarget.m_bBacktrack && Vars::Backtrack::AimAtBacktrack.Value)
 				pCmd->tick_count = TIME_TO_TICKS(tTarget.m_pRecord->m_flSimTime + F::Backtrack.GetFakeInterp());
 			// bug: fast old records seem to be progressively more unreliable ?
 		}

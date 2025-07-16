@@ -12,6 +12,8 @@ void CAimbotGlobal::SortTargets(std::vector<Target_t>& vTargets, int iMethod)
 			{
 			case Vars::Aimbot::General::TargetSelectionEnum::FOV: return a.m_flFOVTo < b.m_flFOVTo;
 			case Vars::Aimbot::General::TargetSelectionEnum::Distance: return a.m_flDistTo < b.m_flDistTo;
+			case Vars::Aimbot::General::TargetSelectionEnum::HighestHP: return a.m_nHealth > b.m_nHealth;
+			case Vars::Aimbot::General::TargetSelectionEnum::LowestHP: return a.m_nHealth < b.m_nHealth;
 			default: return false;
 			}
 		});
@@ -147,7 +149,8 @@ bool CAimbotGlobal::ShouldIgnore(CBaseEntity* pEntity, CTFPlayer* pLocal, CTFWea
 			|| Vars::Aimbot::General::Ignore.Value & Vars::Aimbot::General::IgnoreEnum::Cloaked && pPlayer->m_flInvisibility() && pPlayer->m_flInvisibility() >= Vars::Aimbot::General::IgnoreCloak.Value / 100.f
 			|| Vars::Aimbot::General::Ignore.Value & Vars::Aimbot::General::IgnoreEnum::DeadRinger && pPlayer->m_bFeignDeathReady()
 			|| Vars::Aimbot::General::Ignore.Value & Vars::Aimbot::General::IgnoreEnum::Taunting && pPlayer->IsTaunting()
-			|| Vars::Aimbot::General::Ignore.Value & Vars::Aimbot::General::IgnoreEnum::Disguised && pPlayer->InCond(TF_COND_DISGUISED))
+			|| Vars::Aimbot::General::Ignore.Value & Vars::Aimbot::General::IgnoreEnum::Disguised && pPlayer->InCond(TF_COND_DISGUISED)
+			|| Vars::Aimbot::General::Ignore.Value & Vars::Aimbot::General::IgnoreEnum::Sentrybuster && pPlayer->m_iClass() == TF_CLASS_DEMOMAN && pPlayer->m_nModelIndex() == I::ModelInfoClient->GetModelIndex("models/bots/demo/bot_sentry_buster.mdl"))
 			return true;
 		if (Vars::Aimbot::General::Ignore.Value & Vars::Aimbot::General::IgnoreEnum::Vaccinator)
 		{
